@@ -1,0 +1,344 @@
+C++ Memory Management – Interview Questions and Detailed Answers
+
+
+
+
+
+1. What are the different types of memory used in C++?
+
+
+Answer:
+
+C++ uses several memory segments:
+
+•	Stack:
+
+o	Stores local variables and function call data.
+o	Managed automatically (LIFO).
+o	Fast, but limited size.
+•	
+•	Heap (Free Store):
+
+o	Dynamic memory allocated via new / malloc.
+o	Managed manually (you must delete/free).
+o	Larger than stack, but slower.
+•	
+•	Static/Global:
+
+o	Stores global, static variables.
+o	Exists for the lifetime of the program.
+•	
+•	Code/Text:
+
+o	Stores compiled instructions.
+•	
+•	Constant Segment:
+
+o	Stores read-only data like string literals.
+•	
+
+
+
+
+
+2. What’s the difference between new/delete and malloc/free?
+
+
+Answer:
+Feature	new / delete	malloc / free
+Allocation	Type-safe, returns typed ptr	Returns void*
+Constructor	Calls constructor	Doesn’t call constructor
+Deallocation	Calls destructor	Doesn’t call destructor
+Usage	C++ preferred	Legacy C, C-style code
+Use new/delete in C++ as they support constructors/destructors and type safety.
+
+
+
+
+3. What is a memory leak? How do you detect and prevent it?
+
+
+Answer:
+
+A memory leak happens when dynamically allocated memory is never released.
+int* ptr = new int[10];
+// no delete => memory leak
+
+•	Detection Tools:
+
+o	Valgrind (Linux)
+o	AddressSanitizer (-fsanitize=address)
+o	Visual Leak Detector (Windows)
+•	
+•	Prevention:
+
+o	Use RAII.
+o	Use smart pointers like std::unique_ptr, std::shared_ptr.
+o	Avoid raw new/delete unless absolutely necessary.
+•	
+
+
+
+
+
+4. What is RAII? How does it help manage memory?
+
+
+Answer:
+
+RAII (Resource Acquisition Is Initialization) is a C++ idiom where resource management is tied to object lifetime.
+
+•	Resource (memory, file, mutex) is acquired in constructor.
+•	Released in destructor automatically.
+
+class FileHandle {
+    FILE* fp;
+public:
+    FileHandle(const char* filename) { fp = fopen(filename, "r"); }
+    ~FileHandle() { if (fp) fclose(fp); }
+};
+Benefit: Eliminates memory leaks and manual cleanup.
+
+
+
+
+5. What are smart pointers? How do they work?
+
+
+Answer:
+
+Smart pointers are classes that manage dynamic memory automatically.
+
+•	std::unique_ptr<T>:
+
+o	Exclusive ownership.
+o	Cannot be copied.
+•	
+
+std::unique_ptr<int> p = std::make_unique<int>(10);
+
+•	
+
+•	std::shared_ptr<T>:
+
+o	Shared ownership via reference count.
+o	Automatically deletes when count = 0.
+•	
+•	std::weak_ptr<T>:
+
+o	Observes shared_ptr without affecting reference count.
+o	Prevents circular references.
+•	
+
+
+Use them instead of raw pointers.
+
+
+
+
+6. Explain shallow vs deep copy in terms of memory.
+
+
+Answer:
+
+•	Shallow copy:
+
+o	Copies pointer address.
+o	Two pointers refer to same memory.
+•	
+•	Deep copy:
+
+o	Allocates new memory.
+o	Copies contents, avoids shared ownership.
+•	
+
+class A {
+    int* data;
+public:
+    A(const A& other) {
+        data = new int(*other.data); // deep copy
+    }
+    ~A() { delete data; }
+};
+Use deep copy if your class manages dynamic memory.
+
+
+
+
+7. What is a dangling pointer and how can you prevent it?
+
+
+Answer:
+
+A dangling pointer is a pointer that refers to memory that has been freed.
+int* ptr = new int(5);
+delete ptr;
+*ptr = 10; // undefined behavior!
+Prevention:
+
+•	Set pointer to nullptr after delete.
+•	Use smart pointers to automatically manage object lifetime.
+
+
+
+
+
+8. What is placement new in C++?
+
+
+Answer:
+
+Placement new constructs an object in pre-allocated memory.
+char buffer[sizeof(MyClass)];
+MyClass* obj = new (buffer) MyClass();
+Use case:
+
+•	Custom memory pools.
+•	Embedded systems.
+•	Avoiding heap allocations for performance.
+
+
+Remember: You must manually call the destructor.
+
+
+
+
+9. How does C++ handle memory when exceptions are thrown?
+
+
+Answer:
+
+•	Stack unwinding: Objects on the stack have their destructors called in reverse order.
+•	Heap memory: Not automatically cleaned up unless wrapped in smart pointers or RAII.
+
+
+Example:
+void risky() {
+    std::unique_ptr<int> p(new int);
+    throw std::runtime_error("error"); // memory is automatically released
+}
+Avoid raw pointers when exceptions may occur.
+
+
+
+
+10. How can you detect and debug memory issues in C++?
+
+
+Answer:
+
+•	Tools:
+
+o	Valgrind: Memory leaks, invalid accesses (Linux).
+o	AddressSanitizer: Compile-time detection (-fsanitize=address).
+o	Visual Leak Detector / CRT Debug Heap: Windows.
+•	
+•	Manual techniques:
+
+o	Overload new/delete to log allocations.
+o	Use memory pool tracking.
+•	
+
+
+
+
+
+🔍 BONUS Advanced Questions
+
+
+
+
+
+11. What are custom allocators in STL?
+
+
+Answer:
+
+STL containers accept a custom allocator to control how memory is allocated/deallocated.
+template <typename T>
+struct MyAllocator : std::allocator<T> {
+    // Custom allocation/deallocation logic
+};
+std::vector<int, MyAllocator<int>> v;
+Used for:
+
+•	Memory pools
+•	Embedded systems
+•	Real-time constraints
+
+
+
+
+
+12. How do you manage memory in multithreaded programs?
+
+
+Answer:
+
+•	Use thread-safe allocators (e.g., tcmalloc, jemalloc).
+•	Avoid shared ownership unless needed (prefer unique_ptr over shared_ptr).
+•	Use std::atomic and mutexes if multiple threads access shared pointers.
+
+
+
+
+
+13. What happens if you use delete on a pointer not allocated with new?
+
+
+Answer:
+
+•	Undefined Behavior.
+•	The program might crash or corrupt memory.
+
+int x;
+int* ptr = &x;
+delete ptr; // WRONG!
+Always match:
+
+•	new with delete
+•	new[] with delete[]
+•	Never delete stack or static memory
+
+
+
+
+
+14. What is memory fragmentation?
+
+
+Answer:
+
+Memory fragmentation occurs when memory is allocated and freed in such a way that free memory blocks become non-contiguous.
+
+•	Leads to inefficient use of memory.
+•	Can’t allocate large blocks even if total free memory is enough.
+
+
+Solution:
+
+•	Use memory pools or compacting allocators.
+•	Pre-allocate and reuse memory blocks.
+
+
+
+
+
+15. When would you overload new and delete?
+
+
+Answer:
+
+To:
+
+•	Track allocations (for debugging/leak detection).
+•	Implement custom memory pools.
+•	Log memory usage per class.
+
+void* operator new(std::size_t size) {
+    std::cout << "Allocating " << size << " bytes\n";
+    return malloc(size);
+}
+You must also overload operator delete.
+
+

@@ -1,0 +1,87 @@
+Dynamic Library vs Static Library
+
+Libraries in programming are precompiled code that can be reused across multiple programs. They come in two main types: static libraries and dynamic libraries, each with distinct characteristics, advantages, and use cases.
+
+Static Libraries
+
+Static libraries are directly embedded into the executable at compile time. This means that all the required code from the library is copied into the final executable.
+
+Characteristics:
+
+File Extensions: .a (Linux), .lib (Windows).
+
+Larger Executable Size: Since the library code is included in the executable, the file size increases.
+
+No Runtime Dependency: The executable is self-contained and does not require the library at runtime.
+
+Faster Execution: No runtime linking is needed, which can improve performance.
+
+Version Consistency: The library version used during compilation is guaranteed to be the one used by the program.
+
+Drawbacks:
+
+Memory Usage: Each program using the library has its own copy of the library code, leading to higher memory consumption.
+
+Recompilation Required: Any updates to the library require recompiling the entire program.
+
+Limited Sharing: Code cannot be shared across multiple programs, leading to redundancy.
+
+Example:
+
+# Compile the library
+gcc -c lib_mylib.c -o lib_mylib.o
+ar rcs lib_mylib.a lib_mylib.o
+
+# Link the static library to the program
+gcc -o program program.c -L. -lmylib
+Copy
+Dynamic Libraries
+
+Dynamic libraries are loaded into memory at runtime rather than being embedded into the executable. This allows multiple programs to share the same library.
+
+Characteristics:
+
+File Extensions: .so (Linux), .dll (Windows).
+
+Smaller Executable Size: The executable only contains references to the library, not the actual code.
+
+Shared Code: Multiple programs can use the same library in memory, reducing redundancy.
+
+Easier Updates: Libraries can be updated independently without recompiling the program.
+
+Drawbacks:
+
+Runtime Dependency: The library must be present on the system at runtime, or the program will fail to execute.
+
+Slightly Slower Execution: Runtime linking introduces a small overhead.
+
+Versioning Issues: If the library is updated in an incompatible way, it can break dependent programs (commonly referred to as "DLL Hell").
+
+Example:
+
+# Compile the library
+gcc -shared -fPIC lib_mylib.c -o lib_mylib.so
+
+# Link the dynamic library to the program
+gcc -o program program.c -L. -lmylib
+
+# Ensure the library is in the runtime path
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:
+Copy
+Key Differences
+
+Linking Time: Static libraries are linked at compile time, while dynamic libraries are linked at runtime.
+
+File Size: Static libraries increase the executable size, whereas dynamic libraries keep it smaller.
+
+Memory Usage: Static libraries consume more memory as each program has its own copy, while dynamic libraries allow shared memory usage.
+
+Updates: Static libraries require recompilation for updates, whereas dynamic libraries can be updated independently.
+
+Use Cases
+
+Static Libraries: Ideal for standalone applications where performance and version consistency are critical, such as embedded systems.
+
+Dynamic Libraries: Suitable for applications requiring modularity, frequent updates, or shared functionality across multiple programs.
+
+Understanding these differences helps developers choose the right library type based on their application's requirements and constraints.
